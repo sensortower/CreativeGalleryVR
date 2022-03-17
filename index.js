@@ -44,10 +44,11 @@ function position(radius, angle_h, angle_v) {
     x = Math.sin(rads_h)
     z = Math.cos(rads_h)
     y = Math.sin(rads_v)
+	h_projection = Math.cos(rads_v)
     module = Math.sqrt(x*x + y*y + z*z)
-    resultX = x * radius / module
-    resultY = y * radius / module
-    resultZ = z * radius / module
+    resultX = x * radius * h_projection / module
+    resultY = y * radius
+    resultZ = z * radius * h_projection / module
 
     return [resultX, resultY, resultZ]
 }
@@ -66,8 +67,8 @@ async function start() {
     const randomStartIndex = Math.floor(Math.random() * (creativesData.length - nItems))
     creativesData.slice(randomStartIndex, randomStartIndex + nItems).forEach((creative, index) => {
         const hAngle = getHAngle(index, nItems);
-        const vAngle = 45;
-        createPanel(creative, position(15, hAngle, 0), getItemRotation(hAngle, vAngle));
+        const vAngle = 15;
+        createPanel(creative, position(15, hAngle, vAngle), getItemRotation(hAngle, vAngle));
     });
 }
 
