@@ -1,9 +1,9 @@
-async function preloadResource(creative) {
+async function createPanel(creative, position, rotation) {
     const res = await fetch(creative.url);
     const blob = await res.blob();
     const videoBlobUrl = URL.createObjectURL(blob);
 
-    const videoEntity = createVideoEntity(creative);
+    const videoEntity = createVideoEntity(creative, position, rotation);
     const videoDOMElement = createVideoDOMElement(creative, videoBlobUrl);
 
     // Add the asset to the a-video
@@ -14,12 +14,12 @@ async function preloadResource(creative) {
     await videoDOMElement.play();
 }
 
-function createVideoEntity(creative) {
+function createVideoEntity(creative, position, rotation) {
     const videoEntity = document.createElement('a-video');
     const videoEntityId = `video-entity-${creative.id}`
     videoEntity.setAttribute('id', videoEntityId);
     videoEntity.setAttribute('position', '0 3 -4');
-    videoEntity.setAttribute('rotation', getItemRotation(getHAngle(0, 16), 0));
+    videoEntity.setAttribute('rotation', rotation);
     videoEntity.setAttribute('width', '4');
     videoEntity.setAttribute('height', '2');
     videoEntity.setAttribute('animation', 'property: components.material.material.opacity; from: 0; to: 1; dur: 750; easing: easeOutQuad');
@@ -47,12 +47,6 @@ async function fetchCreatives(type) {
     return await fetch(`${type}_creatives.json`).then(res => res.json());
 }
 
-async function start() {
-    // Fetch creatives
-    const creativesData = await fetchCreatives('video');
-    [creativesData[Math.floor((Math.random()*creativesData.length))]].forEach(creativeData => preloadResource(creativeData))
-}
-
 function getItemRotation(hAngle, vAngle) {
     const x = vAngle;
     const y = -hAngle;
@@ -63,6 +57,16 @@ function getItemRotation(hAngle, vAngle) {
 // Index goes from 0 to nItems - 1
 function getHAngle(index, nItems) {
     return (360 / nItems) * index;
+}
+
+async function start() {
+    const nItems = 16;
+
+    // Fetch creatives
+    const creativesData = await fetchCreatives('video');
+    creativesData.slice(0, nItems).forEach((creative, index) => {
+       createPanel(creative, "0 0 0", getItemRotation(getHAngle(index, nItems), 0));
+    });
 }
 
 start();
