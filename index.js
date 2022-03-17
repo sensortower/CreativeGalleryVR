@@ -19,7 +19,7 @@ function createVideoEntity(creative) {
     const videoEntityId = `video-entity-${creative.id}`
     videoEntity.setAttribute('id', videoEntityId);
     videoEntity.setAttribute('position', '0 3 -4');
-    videoEntity.setAttribute('rotation', '0 0 0');
+    videoEntity.setAttribute('rotation', getItemRotation(getHAngle(0, 16), 0));
     videoEntity.setAttribute('width', '4');
     videoEntity.setAttribute('height', '2');
     videoEntity.setAttribute('animation', 'property: components.material.material.opacity; from: 0; to: 1; dur: 750; easing: easeOutQuad');
@@ -51,6 +51,18 @@ async function start() {
     // Fetch creatives
     const creativesData = await fetchCreatives('video');
     [creativesData[Math.floor((Math.random()*creativesData.length))]].forEach(creativeData => preloadResource(creativeData))
+}
+
+function getItemRotation(hAngle, vAngle) {
+    const x = vAngle;
+    const y = -hAngle;
+    const z = 0;
+    return `${x} ${y} ${z}`;
+}
+
+// Index goes from 0 to nItems - 1
+function getHAngle(index, nItems) {
+    return (360 / nItems) * index;
 }
 
 start();
