@@ -7,11 +7,12 @@ async function preloadVideo(src) {
 async function start() {
     const videoElement = document.getElementById('video-element');
     const videoAsset = document.createElement('video');
-    const videoUrl =  await preloadVideo('example.mp4');
+    const videoUrl = await preloadVideo('example.mp4');
 
     videoAsset.setAttribute('id', 'dynamic-video'); // Create a unique id for asset
     videoAsset.setAttribute('src', videoUrl);
     videoAsset.setAttribute('style', 'display: none;')
+    videoAsset.setAttribute('loop', 'true')
 
     // Append the new video to the a-assets, where a-assets id="assets-id"
     document.getElementById('video-container').appendChild(videoAsset);
