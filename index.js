@@ -1,6 +1,7 @@
 const panels = new Map();
 const panelsArr = [];
 let scene;
+let creativesData = [];
 
 async function createPanel(creative, position, rotation, rowEntity) {
     const { videoEntity, id } = createVideoEntity(creative, position, rotation, rowEntity);
@@ -39,6 +40,15 @@ function createVideoEntity(creative, position, rotation, rowEntity) {
     videoEntity.setAttribute('animation', 'property: components.material.material.opacity; from: 0; to: 1; dur: 750; easing: easeOutQuad');
 
     rowEntity.appendChild(videoEntity);
+
+    videoEntity.addEventListener('click', evt => {
+        console.log('click', videoEntityId)
+        const id = videoEntityId.substring(13);
+        const creative = creativesData.find(x => x.id === id)
+        if (creative) {
+            document.getElementById('title').textContent = creative.title;
+        }
+    });
 
     return { videoEntity, id: videoEntityId };
 }
@@ -80,7 +90,7 @@ async function start() {
     scene = document.getElementById('my-scene');
 
     // Fetch creatives
-    const creativesData = await fetchCreatives('video');
+    creativesData = await fetchCreatives('video');
 
     addPanels(creativesData);
     // const randomStartIndex = Math.floor(Math.random() * (creativesData.length - nItems))
