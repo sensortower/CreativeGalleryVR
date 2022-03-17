@@ -1,27 +1,32 @@
-async function preloadVideo(src) {
-    const res = await fetch(src);
+async function preloadResource(creative) {
+    const res = await fetch(creative.url);
     const blob = await res.blob();
-    return URL.createObjectURL(blob);
+    const videoUrl = URL.createObjectURL(blob);
+    const videoEntity = document.getElementById('video-element');
+    const videoDOMElement = document.createElement('video');
+    const videoDOMElementId = `dynamic-video-${creative.id}`
+    videoDOMElement.setAttribute('id', videoDOMElementId); // Create a unique id for asset
+    videoDOMElement.setAttribute('src', videoUrl);
+    videoDOMElement.setAttribute('style', 'display: none;')
+    videoDOMElement.setAttribute('loop', 'true')
+    // Append the new video to the a-assets, where a-assets id="assets-id"
+    document.getElementById('video-container').appendChild(videoDOMElement);
+
+    // Add the asset to the a-video
+    videoEntity.setAttribute('src', `#${videoDOMElementId}`);
+    // Start playback
+    videoDOMElement.muted = true;
+    await videoDOMElement.play();
+}
+
+async function fetchCreatives() {
+    return await fetch('creatives.json').then(res => res.json());
 }
 
 async function start() {
-    const videoElement = document.getElementById('video-element');
-    const videoAsset = document.createElement('video');
-    const videoUrl = await preloadVideo('example.mp4');
-
-    videoAsset.setAttribute('id', 'dynamic-video'); // Create a unique id for asset
-    videoAsset.setAttribute('src', videoUrl);
-    videoAsset.setAttribute('style', 'display: none;')
-    videoAsset.setAttribute('loop', 'true')
-
-    // Append the new video to the a-assets, where a-assets id="assets-id"
-    document.getElementById('video-container').appendChild(videoAsset);
-
-    // Add the asset to the a-video
-    videoElement.setAttribute('src', '#dynamic-video');
-    // Start playback
-    videoAsset.muted = true;
-    videoAsset.play();
+    // Fetch creatives
+    const creativesData = await fetchCreatives();
+    [creativesData[Math.floor((Math.random()*creativesData.length))]].forEach(creativeData => preloadResource(creativeData))
 }
 
 start();
