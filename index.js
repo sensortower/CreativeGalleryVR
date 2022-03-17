@@ -42,13 +42,14 @@ function createVideoDOMElement(creative, videoBlobUrl) {
     return videoDOMElement;
 }
 
-async function fetchCreatives() {
-    return await fetch('creatives.json').then(res => res.json());
+// Type: 'image' | 'video'
+async function fetchCreatives(type) {
+    return await fetch(`${type}_creatives.json`).then(res => res.json());
 }
 
 async function start() {
     // Fetch creatives
-    const creativesData = await fetchCreatives();
+    const creativesData = await fetchCreatives('video');
     [creativesData[Math.floor((Math.random()*creativesData.length))]].forEach(creativeData => preloadResource(creativeData))
 }
 
