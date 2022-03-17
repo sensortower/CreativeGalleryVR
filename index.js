@@ -1,17 +1,14 @@
 async function createPanel(creative, position, rotation) {
     const res = await fetch(creative.url);
     const blob = await res.blob();
-    const videoBlobUrl = URL.createObjectURL(blob);
 
     const videoEntity = createVideoEntity(creative, position, rotation);
-    const videoDOMElement = createVideoDOMElement(creative, videoBlobUrl);
 
     // Add the asset to the a-video
-    videoEntity.setAttribute('src', `#${videoDOMElement.id}`);
+    videoEntity.setAttribute('src', creative.url);
 
     // Start playback
-    videoDOMElement.muted = true;
-    await videoDOMElement.play();
+    // await videoEntity.play();
 }
 
 function createVideoEntity(creative, position, rotation) {
@@ -27,19 +24,6 @@ function createVideoEntity(creative, position, rotation) {
     document.getElementById('my-scene').appendChild(videoEntity);
 
     return videoEntity;
-}
-
-function createVideoDOMElement(creative, videoBlobUrl) {
-    const videoDOMElement = document.createElement('video');
-    const videoDOMElementId = `dynamic-video-${creative.id}`
-    videoDOMElement.setAttribute('id', videoDOMElementId);
-    videoDOMElement.setAttribute('src', videoBlobUrl);
-    videoDOMElement.setAttribute('style', 'display: none;')
-    videoDOMElement.setAttribute('loop', 'true')
-    // Append the new video to the a-assets, where a-assets id="assets-id"
-    document.getElementById('video-container').appendChild(videoDOMElement);
-
-    return videoDOMElement;
 }
 
 // Type: 'image' | 'video'
