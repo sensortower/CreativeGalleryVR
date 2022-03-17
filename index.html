@@ -6,14 +6,23 @@
   <body>
     <div id="video-container"></div>
     <a-scene id="my-scene">
-	  <a-assets>
-        <a-asset-item id="floor" src="Assets/floor.glb"></a-asset-item>
-		<a-asset-item id="sphere" src="Assets/sphere.glb"></a-asset-item>
-      </a-assets>
-	  <a-entity light="type: point; color: #FFF; intensity: 1.0" position="0 4 0"></a-entity>
-
+      <a-assets>
+          <img id="logo" src="Assets/logo.svg">
+          <a-asset-item id="floor" src="Assets/floor.glb"></a-asset-item>
+      <a-asset-item id="sphere" src="Assets/sphere.glb"></a-asset-item>
+        </a-assets>
+      <a-entity light="type: point; color: #FFF; intensity: 1.0" position="0 4 0"></a-entity>
       <a-entity gltf-model="#floor"></a-entity>
-	  <a-entity gltf-model="#sphere" color="#FFC65D"></a-entity>
+      <a-entity gltf-model="#sphere" color="#FFC65D"></a-entity>
+      <a-plane
+        src="#logo"
+        height="8"
+        width="8"
+        rotation="90 0 0" 
+        position="0 17 0" 
+        geometry="primitive: plane" 
+        material="transparent: true"
+      ></a-plane>
     </a-scene>
     <script src="index.js"></script>
   </body>
