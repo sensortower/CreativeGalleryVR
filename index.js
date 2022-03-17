@@ -15,7 +15,7 @@ function createVideoEntity(creative, position, rotation) {
     const videoEntity = document.createElement('a-video');
     const videoEntityId = `video-entity-${creative.id}`
     videoEntity.setAttribute('id', videoEntityId);
-    videoEntity.setAttribute('position', '0 3 -4');
+    videoEntity.setAttribute('position', position.join(" "));
     videoEntity.setAttribute('rotation', rotation.join(" "));
     videoEntity.setAttribute('width', '4');
     videoEntity.setAttribute('height', '2');
@@ -32,11 +32,26 @@ async function fetchCreatives(type) {
 }
 
 function getItemRotation(hAngle, vAngle) {
-    const x = vAngle;
-    const y = -hAngle;
+    const x = -vAngle;
+    const y = hAngle;
     const z = 0;
     return [x, y, z];
 }
+
+function position(radius, angle_h, angle_v) {
+    rads_h = angle_h * Math.PI / 180.0
+    rads_v = angle_v * Math.PI / 180.0
+    x = Math.sin(rads_h)
+    z = Math.cos(rads_h)
+    y = Math.sin(rads_v)
+    module = Math.sqrt(x*x + y*y + z*z)
+    resultX = x * radius / module
+    resultY = y * radius / module
+    resultZ = z * radius / module
+
+    return [resultX, resultY, resultZ]
+}
+
 
 // Index goes from 0 to nItems - 1
 function getHAngle(index, nItems) {
@@ -50,7 +65,9 @@ async function start() {
     const creativesData = await fetchCreatives('video');
     const randomStartIndex = Math.floor(Math.random() * (creativesData.length - nItems))
     creativesData.slice(randomStartIndex, randomStartIndex + nItems).forEach((creative, index) => {
-       createPanel(creative, "0 0 0", getItemRotation(getHAngle(index, nItems), 0));
+        const hAngle = getHAngle(index, nItems);
+        const vAngle = 45;
+        createPanel(creative, position(15, hAngle, 0), getItemRotation(hAngle, vAngle));
     });
 }
 
