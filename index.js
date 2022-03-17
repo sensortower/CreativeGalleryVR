@@ -1,18 +1,35 @@
-async function createPanel(creative, position, rotation) {
-    const res = await fetch(creative.url);
-    const blob = await res.blob();
+const panels = new Map();
+const panelsArr = [];
+let scene;
 
-    const videoEntity = createVideoEntity(creative, position, rotation);
+async function createPanel(creative, position, rotation, rowEntity) {
+    const { videoEntity, id } = createVideoEntity(creative, position, rotation, rowEntity);
 
     // Add the asset to the a-video
     videoEntity.setAttribute('src', creative.url);
 
     // Start playback
     // await videoEntity.play();
+    return { videoEntity, id }
 }
 
-function createVideoEntity(creative, position, rotation) {
-    const videoEntity = document.createElement('a-video');
+let rotation = 0
+function rotatePanels() {
+    panelsArr.forEach((row, rowIndex) => {
+        const rowEntity = row.rowEntity;
+        const isOdd = rowIndex % 2 !== 0;
+        // const isThird = rowIndex % 3 === 0;
+
+        // if (!isThird) { // keep every third row stationary
+            const newRotation = isOdd ? rotation * -1 : rotation
+            rowEntity.setAttribute('rotation', `0 ${newRotation} 0`);
+            rotation += 0.005
+        // }
+    });
+}
+
+function createVideoEntity(creative, position, rotation, rowEntity) {
+    const videoEntity = document.createElement('a-video');    
     const videoEntityId = `video-entity-${creative.id}`
     videoEntity.setAttribute('id', videoEntityId);
     videoEntity.setAttribute('position', position.join(" "));
@@ -21,9 +38,9 @@ function createVideoEntity(creative, position, rotation) {
     videoEntity.setAttribute('height', '2');
     videoEntity.setAttribute('animation', 'property: components.material.material.opacity; from: 0; to: 1; dur: 750; easing: easeOutQuad');
 
-    document.getElementById('my-scene').appendChild(videoEntity);
+    rowEntity.appendChild(videoEntity);
 
-    return videoEntity;
+    return { videoEntity, id: videoEntityId };
 }
 
 // Type: 'image' | 'video'
@@ -60,16 +77,49 @@ function getHAngle(index, nItems) {
 }
 
 async function start() {
-    const nItems = 16;
+    scene = document.getElementById('my-scene');
 
     // Fetch creatives
     const creativesData = await fetchCreatives('video');
-    const randomStartIndex = Math.floor(Math.random() * (creativesData.length - nItems))
-    creativesData.slice(randomStartIndex, randomStartIndex + nItems).forEach((creative, index) => {
-        const hAngle = getHAngle(index, nItems);
-        const vAngle = 15;
-        createPanel(creative, position(15, hAngle, vAngle), getItemRotation(hAngle, vAngle));
-    });
+
+    addPanels(creativesData);
+    // const randomStartIndex = Math.floor(Math.random() * (creativesData.length - nItems))
+
+    setInterval(() => {
+        rotatePanels()
+    }, 16.67); // 60 fps
+}
+
+function addPanels(creativesData) {
+    const nItemsBase = 16;
+    const rows = Array.from(Array(8).keys());
+    const circumference = 15;
+    let panelIndex = 0;
+
+    rows.forEach(rowIndex => {
+        const nItems = Math.floor(nItemsBase - (rowIndex + (panelIndex / Math.PI / 9)));
+        const rowEntity = document.createElement('a-entity');
+        rowEntity.setAttribute('id', `row-entity-${rowIndex}`);
+        rowEntity.setAttribute('rotation', '0 45 0');
+        scene.appendChild(rowEntity);
+        panelsArr.push({ rowEntity, panelIds: new Array(nItems)});
+
+        creativesData
+            .slice(panelIndex, panelIndex + nItems)
+            .forEach(async (creative, index) => {
+                const hAngle = getHAngle(index, nItems);
+                const vAngle = circumference * (rowIndex / (Math.PI / 2));
+                const { videoEntity, id } = await createPanel(
+                    creative, 
+                    position(circumference, hAngle, vAngle), 
+                    getItemRotation(hAngle, vAngle),
+                    rowEntity);
+                panels.set(id, videoEntity);
+                panelsArr[rowIndex].panelIds[index] = id;
+            });
+        panelIndex += nItems;
+    })
+    console.log(panelsArr);
 }
 
 start();
