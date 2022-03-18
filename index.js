@@ -6,14 +6,33 @@ let rotationPaused = false;
 let openEntity;
 
 async function createPanel(creative, position, rotation, rowEntity) {
+    const res = await fetch(creative.url);
+    const blob = await res.blob();
+    const videoBlobUrl = URL.createObjectURL(blob);
+    const videoDOMElement = createVideoDOMElement(creative, videoBlobUrl);
     const { videoEntity, id } = createVideoEntity(creative, position, rotation, rowEntity);
 
     // Add the asset to the a-video
-    videoEntity.setAttribute('src', creative.url);
+    videoEntity.setAttribute('src', `#${videoDOMElement.id}`);
+    // videoEntity.setAttribute('src', URL.createObjectURL(blob));
 
-    // Start playback
-    // await videoEntity.play();
+    videoDOMElement.muted = true;
+    await videoDOMElement.play();
+    await videoDOMElement.pause();
     return { videoEntity, id }
+}
+
+function createVideoDOMElement(creative, videoBlobUrl) {
+    const videoDOMElement = document.createElement('video');
+    const videoDOMElementId = `dynamic-video-${creative.id}`
+    videoDOMElement.setAttribute('id', videoDOMElementId);
+    videoDOMElement.setAttribute('src', videoBlobUrl);
+    videoDOMElement.setAttribute('style', 'display: none;')
+    videoDOMElement.setAttribute('loop', 'true')
+    // Append the new video to the a-assets, where a-assets id="assets-id"
+    document.getElementById('scene-assets').appendChild(videoDOMElement);
+
+    return videoDOMElement;
 }
 
 let rotation = 0
@@ -91,17 +110,17 @@ function getItemRotation(hAngle, vAngle) {
     return [x, y, z];
 }
 
-function position(radius, angle_h, angle_v) {
-    rads_h = angle_h * Math.PI / 180.0
-    rads_v = angle_v * Math.PI / 180.0
-    x = Math.sin(rads_h)
-    z = Math.cos(rads_h)
-    y = Math.sin(rads_v)
-	h_projection = Math.cos(rads_v)
-    module = Math.sqrt(x*x + y*y + z*z)
-    resultX = x * radius * h_projection / module
-    resultY = y * radius
-    resultZ = z * radius * h_projection / module
+function getItemPosition(radius, hAngle, vAngle) {
+    const hRads = hAngle * Math.PI / 180.0
+    const vRads = vAngle * Math.PI / 180.0
+    const x = Math.sin(hRads)
+    const z = Math.cos(hRads)
+    const y = Math.sin(vRads)
+    const hProjection = Math.cos(vRads)
+    const module = Math.sqrt(x*x + y*y + z*z)
+    const resultX = x * radius * hProjection / module
+    const resultY = y * radius
+    const resultZ = z * radius * hProjection / module
 
     return [resultX, resultY, resultZ]
 }
@@ -128,7 +147,7 @@ async function start() {
 
 function addPanels(creativesData) {
     const nItemsBase = 16;
-    const rows = Array.from(Array(8).keys());
+    const rows = Array.from(Array(7).keys());
     const circumference = 15;
     let panelIndex = 0;
 
@@ -147,7 +166,7 @@ function addPanels(creativesData) {
                 const vAngle = circumference * (rowIndex / (Math.PI / 2));
                 const { videoEntity, id } = await createPanel(
                     creative, 
-                    position(circumference, hAngle, vAngle), 
+                    getItemPosition(circumference, hAngle, vAngle),
                     getItemRotation(hAngle, vAngle),
                     rowEntity);
                 panels.set(id, videoEntity);
