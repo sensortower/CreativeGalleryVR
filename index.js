@@ -122,7 +122,7 @@ function closeEntity(entity) {
 
 // Type: 'image' | 'video'
 async function fetchCreatives(type) {
-    return await fetch(`${type}_creatives.json`).then(res => res.json());
+    return shuffleCreatives(await fetch(`${type}_creatives.json`).then(res => res.json()));
 }
 
 function getItemRotation(hAngle, vAngle) {
@@ -197,6 +197,13 @@ function addPanels(creativesData) {
         panelIndex += nItems;
     })
     console.log(panelsArr);
+}
+
+function shuffleCreatives(creatives) {
+    return creatives
+        .map(creative => ({creative, sort: Math.random()}))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({creative}) => creative);
 }
 
 start();
