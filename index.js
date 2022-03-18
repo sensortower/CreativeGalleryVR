@@ -2,6 +2,8 @@ const panels = new Map();
 const panelsArr = [];
 let scene;
 let creativesData = [];
+let rotationPaused = false;
+let openEntity;
 
 async function createPanel(creative, position, rotation, rowEntity) {
     const { videoEntity, id } = createVideoEntity(creative, position, rotation, rowEntity);
@@ -38,19 +40,43 @@ function createVideoEntity(creative, position, rotation, rowEntity) {
     videoEntity.setAttribute('width', '4');
     videoEntity.setAttribute('height', '2');
     videoEntity.setAttribute('animation', 'property: components.material.material.opacity; from: 0; to: 1; dur: 750; easing: easeOutQuad');
+    videoEntity.setAttribute('animation__mouseenter', 'property: scale; to: 4 4 4; dur: 350; startEvents: openEntity');
+    videoEntity.setAttribute('animation__mouseleave', 'property: scale; to: 1 1 1; dur: 200; startEvents: closeEntity');
 
     rowEntity.appendChild(videoEntity);
 
+    videoEntity.addEventListener('mouseleave', evt => {
+        if (openEntity && openEntity === videoEntity) {
+            closeEntity(videoEntity)
+        }
+    });
+
     videoEntity.addEventListener('click', evt => {
-        console.log('click', videoEntityId)
+        if (openEntity && openEntity === videoEntity) {
+            closeEntity(videoEntity)
+            return
+        }
+
+        rotationPaused = !rotationPaused;
+        openEntity = videoEntity;
+
+        videoEntity.emit('openEntity', null, false);
+
         const id = videoEntityId.substring(13);
-        const creative = creativesData.find(x => x.id === id)
+        const creative = creativesData.find(x => x.id === id);
         if (creative) {
             document.getElementById('title').textContent = creative.title;
         }
     });
 
     return { videoEntity, id: videoEntityId };
+}
+
+function closeEntity (entity) {
+    entity.emit('closeEntity', null, false)
+    openEntity = null
+    rotationPaused = false
+    document.getElementById('title').textContent = ''
 }
 
 // Type: 'image' | 'video'
@@ -96,7 +122,7 @@ async function start() {
     // const randomStartIndex = Math.floor(Math.random() * (creativesData.length - nItems))
 
     setInterval(() => {
-        rotatePanels()
+        !rotationPaused && rotatePanels()
     }, 16.67); // 60 fps
 }
 
