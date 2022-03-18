@@ -1,14 +1,17 @@
-function position(radius, angle_h, angle_v)
+// targetPosition: THREE.Vector3
+// observerPosition: THREE.Vector3
+function getCloserPosition(targetPosition, observerPosition, distance)
 {
-	rads_h = angle_h * Math.PI / 180.0
-	rads_v = angle_v * Math.PI / 180.0
-	x = Math.sin(rads_h)
-	z = Math.cos(rads_h)
-	y = Math.sin(rads_v)
-	module = Math.sqrt(x*x + y*y + z*z)
-	resultX = x * radius / module
-	resultY = y * radius / module
-	resultZ = z * radius / module
+	dx = targetPosition.x - observerPosition.x
+	dy = targetPosition.y - observerPosition.y
+	dz = targetPosition.z - observerPosition.z
+	module = Math.sqrt(dx*dx + dy*dy + dz*dz)
+	dx *= (distance / module)
+	dy *= (distance / module)
+	dz *= (distance / module)
+	resultX = observerPosition.x + dx
+	resultY = observerPosition.y + dy
+	resultZ = observerPosition.z + dz
 	
-	return {x: resultX, y: resultY, z: resultZ}
+	return [resultX, resultY, resultZ]
 }
