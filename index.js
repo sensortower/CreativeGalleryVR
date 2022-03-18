@@ -76,8 +76,8 @@ function createVideoEntity(creative, position, rotation, rowEntity) {
     videoEntity.setAttribute('id', videoEntityId);
     videoEntity.setAttribute('position', position.join(" "));
     videoEntity.setAttribute('rotation', rotation.join(" "));
-    videoEntity.setAttribute('width', '4');
-    videoEntity.setAttribute('height', '2');
+    videoEntity.setAttribute('width', '1.8');
+    videoEntity.setAttribute('height', '3.2');
     videoEntity.setAttribute('animation', 'property: components.material.material.opacity; from: 0; to: 1; dur: 750; easing: easeOutQuad');
     videoEntity.setAttribute('animation__mouseenter', 'property: scale; to: 1.25 1.25 1.25; dur: 350; startEvents: highlightEntity');
     videoEntity.setAttribute('animation__mouseleave', 'property: scale; to: 1 1 1; dur: 350; startEvents: unhighlightEntity');
@@ -133,6 +133,7 @@ function closeEntity(entity) {
     entity.emit('closeEntity', null, false);
     entity.emit('unhighlightEntity', null, false);
     muteVideo(entity);
+    pauseVideo(entity);
     openEntity = null
     rotationPaused = false
     document.getElementById('title').textContent = ''
@@ -203,13 +204,13 @@ async function start() {
 }
 
 function addPanels(creativesData) {
-    const nItemsBase = 20;
-    const rows = Array.from(Array(7).keys());
-    const circumference = 15;
+    const nItemsBase = 30;
+    const rows = Array.from(Array(4).keys());
+    const circumference = 13;
     let panelIndex = 0;
 
     rows.forEach(rowIndex => {
-        const nItems = Math.floor(nItemsBase - (rowIndex + (panelIndex / Math.PI / 7)));
+        const nItems = Math.floor(nItemsBase - (rowIndex + (panelIndex / Math.PI / 1.5)));
         const rowEntity = document.createElement('a-entity');
         rowEntity.setAttribute('id', `row-entity-${rowIndex}`);
         rowEntity.setAttribute('rotation', '0 45 0');
@@ -220,7 +221,7 @@ function addPanels(creativesData) {
             .slice(panelIndex, panelIndex + nItems)
             .forEach(async (creative, index) => {
                 const hAngle = getHAngle(index, nItems);
-                const vAngle = circumference * (rowIndex / (Math.PI / 2));
+                const vAngle = circumference * (rowIndex / (Math.PI / 4)) + 7.5;
                 const { videoEntity, id } = await createPanel(
                     creative, 
                     getItemPosition(circumference, hAngle, vAngle),
