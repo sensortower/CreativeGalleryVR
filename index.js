@@ -1,9 +1,11 @@
 const panels = new Map();
-const panelsArr = [];
+let panelsArr = [];
 let scene;
 let creativesData = [];
 let rotationPaused = false;
 let openedEntity;
+let rotationInterval;
+let startComplete = false;
 
 async function createPanel(creative, position, rotation, rowEntity) {
     const res = await fetch(creative.url);
@@ -89,29 +91,36 @@ function createVideoEntity(creative, position, rotation, rowEntity) {
 
     rowEntity.appendChild(videoEntity);
 
-    videoEntity.addEventListener('mouseenter', _ => {
-        if (!openedEntity) {
-            highlightEntity(videoEntity);
-        }
-    });
+    videoEntity.addEventListener('mouseenter', onPanelMouseEnter);
 
-    videoEntity.addEventListener('mouseleave', evt => {
-        if (openedEntity && openedEntity === videoEntity) {
-            closeEntity(videoEntity);
-        } else {
-            unhighlightEntity(videoEntity);
-        }
-    });
+    videoEntity.addEventListener('mouseleave', onPanelMouseLeave);
 
-    videoEntity.addEventListener('click', evt => {
-        if (openedEntity && openedEntity === videoEntity) {
-            closeEntity(videoEntity);
-            return;
-        }
-        openEntity(videoEntity);
-    });
+    videoEntity.addEventListener('click', onPanelClick);
 
     return { videoEntity, id: videoEntityId };
+}
+
+function onPanelMouseEnter({ srcElement }) {
+    if (!openedEntity) {
+        highlightEntity(srcElement);
+    }
+}
+
+function onPanelMouseLeave({ srcElement }) {
+    if (openedEntity && openedEntity === srcElement) {
+        closeEntity(srcElement);
+    } else {
+        unhighlightEntity(srcElement);
+    }
+}
+
+function onPanelClick({ srcElement }) {
+    if (openedEntity && openedEntity === srcElement) {
+        closeEntity(videoEntity);
+        return;
+    }
+    // openEntity(srcElement);
+    reset();
 }
 
 function highlightEntity(videoEntity) {
@@ -211,21 +220,32 @@ async function start() {
     // Fetch creatives
     creativesData = await fetchCreatives('video');
 
-    addPanels(creativesData);
-    // const randomStartIndex = Math.floor(Math.random() * (creativesData.length - nItems))
-
-    setInterval(() => {
+    rotationInterval = setInterval(() => {
         !rotationPaused && rotatePanels()
     }, 16.67); // 60 fps
+
+    await addPanels(creativesData);
+    startComplete = true
 }
 
-function addPanels(creativesData) {
+function reset() {
+    if (!startComplete) {
+        return;
+    }
+    startComplete = false;
+    clearInterval(rotationInterval);
+    removePanels();
+
+    start();
+}
+
+async function addPanels(creativesData) {
     const nItemsBase = 32;
     const rows = Array.from(Array(4).keys());
     const circumference = 13;
     let panelIndex = 0;
 
-    rows.forEach(rowIndex => {
+    await Promise.all(rows.flatMap(rowIndex => {
         const nItems = Math.floor(nItemsBase - (rowIndex + (panelIndex / Math.PI / 1.5)));
         const rowEntity = document.createElement('a-entity');
         rowEntity.setAttribute('id', `row-entity-${rowIndex}`);
@@ -233,22 +253,44 @@ function addPanels(creativesData) {
         scene.appendChild(rowEntity);
         panelsArr.push({ rowEntity, panelIds: new Array(nItems)});
 
-        creativesData
+        const promises = creativesData
             .slice(panelIndex, panelIndex + nItems)
-            .forEach(async (creative, index) => {
-                const hAngle = getHAngle(index, nItems);
-                const vAngle = circumference * (rowIndex / (Math.PI / 4)) + 7.5;
-                const { videoEntity, id } = await createPanel(
-                    creative, 
-                    getItemPosition(circumference, hAngle, vAngle),
-                    getItemRotation(hAngle, vAngle),
-                    rowEntity);
-                panels.set(id, videoEntity);
-                panelsArr[rowIndex].panelIds[index] = id;
+            .map((creative, index) => {
+                return new Promise(async (resolve) => {
+                    const hAngle = getHAngle(index, nItems);
+                    const vAngle = circumference * (rowIndex / (Math.PI / 4)) + 7.5;
+                    const { videoEntity, id } = await createPanel(
+                        creative,
+                        getItemPosition(circumference, hAngle, vAngle),
+                        getItemRotation(hAngle, vAngle),
+                        rowEntity);
+                    panels.set(id, videoEntity);
+                    panelsArr[rowIndex].panelIds[index] = id;
+                    console.log('Resolved');
+                    resolve();
+                });
             });
         panelIndex += nItems;
-    })
-    console.log(panelsArr);
+        return promises;
+    }));
+}
+
+function removePanels() {
+    clearEventListeners();
+    panelsArr.forEach(({rowEntity}) => {
+        rowEntity.parentElement.removeChild(rowEntity);
+    });
+    panelsArr = [];
+}
+
+function clearEventListeners() {
+    panelsArr
+        .flatMap(({panelIds}) => panelIds)
+        .forEach(panelId => {
+            document.getElementById(panelId).removeEventListener('mouseenter', onPanelMouseEnter);
+            document.getElementById(panelId).removeEventListener('mouseleave', onPanelMouseLeave);
+            document.getElementById(panelId).removeEventListener('click', onPanelClick);
+    });
 }
 
 function shuffleCreatives(creatives) {
