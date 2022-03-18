@@ -204,7 +204,7 @@ async function start() {
 }
 
 function addPanels(creativesData) {
-    const nItemsBase = 30;
+    const nItemsBase = 32;
     const rows = Array.from(Array(4).keys());
     const circumference = 13;
     let panelIndex = 0;
