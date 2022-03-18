@@ -265,7 +265,6 @@ async function addPanels(creativesData) {
                         rowEntity);
                     panels.set(id, videoEntity);
                     panelsArr[rowIndex].panelIds[index] = id;
-                    console.log('Resolved');
                     resolve();
                 });
             });
@@ -299,4 +298,5 @@ function shuffleCreatives(creatives) {
         .map(({creative}) => creative);
 }
 
+document.getElementById('red-button').addEventListener('click', reset);
 start();
