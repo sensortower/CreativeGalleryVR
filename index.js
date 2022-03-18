@@ -137,20 +137,14 @@ function openEntity(videoEntity) {
     openedEntity = videoEntity;
 
     const observerPosition = new THREE.Vector3(0, 1, 0);
-    const newPositionVector = getCloserPosition(videoEntity.object3D.position, observerPosition, 3.5);
-    const currentPosition = videoEntity.getAttribute('position');
+    const newPosition = getCloserPosition(videoEntity.object3D.position, observerPosition, 3.5);
+    const currentPosition = videoEntity.object3D.position;
     const currentPositionString = `${currentPosition.x} ${currentPosition.y} ${currentPosition.z}`
     videoEntity.setAttribute('animation__close-entity', `property: position; to: ${currentPositionString}; dur: 150; startEvents: closeEntity`);
-    videoEntity.setAttribute('animation__open-entity', `property: position; to: ${newPositionVector.join(' ')}; dur: 150; startEvents: openEntity`);
+    videoEntity.setAttribute('animation__open-entity', `property: position; to: ${newPosition.join(' ')}; dur: 150; startEvents: openEntity`);
 
     emitEvent(videoEntity, 'openEntity');
     unmuteVideo(videoEntity)
-
-    const id = videoEntity.id.substring(13);
-    const creative = creativesData.find(x => x.id === id);
-    if (creative) {
-        document.getElementById('title').textContent = creative.title;
-    }
 }
 
 function closeEntity(videoEntity) {
@@ -158,9 +152,8 @@ function closeEntity(videoEntity) {
     emitEvent(videoEntity, 'unhighlightEntity');
     muteVideo(videoEntity);
     pauseVideo(videoEntity);
-    openedEntity = null
-    rotationPaused = false
-    document.getElementById('title').textContent = ''
+    openedEntity = null;
+    rotationPaused = false;
 }
 
 // Type: 'image' | 'video'
