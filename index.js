@@ -45,7 +45,7 @@ function rotatePanels() {
         // if (!isThird) { // keep every third row stationary
             const newRotation = isOdd ? rotation * -1 : rotation
             rowEntity.setAttribute('rotation', `0 ${newRotation} 0`);
-            rotation += 0.005
+            rotation += 0.003
         // }
     });
 }
@@ -174,7 +174,7 @@ function addPanels(creativesData) {
     let panelIndex = 0;
 
     rows.forEach(rowIndex => {
-        const nItems = Math.floor(nItemsBase - (rowIndex + (panelIndex / Math.PI / 9)));
+        const nItems = Math.floor(nItemsBase - (rowIndex + (panelIndex / Math.PI / 7)));
         const rowEntity = document.createElement('a-entity');
         rowEntity.setAttribute('id', `row-entity-${rowIndex}`);
         rowEntity.setAttribute('rotation', '0 45 0');
