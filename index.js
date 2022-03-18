@@ -14,7 +14,6 @@ async function createPanel(creative, position, rotation, rowEntity) {
 
     // Add the asset to the a-video
     videoEntity.setAttribute('src', `#${videoDOMElement.id}`);
-    // videoEntity.setAttribute('src', URL.createObjectURL(blob));
 
     videoDOMElement.muted = true;
     await videoDOMElement.play();
@@ -50,24 +49,25 @@ function rotatePanels() {
     });
 }
 
-function playVideo(videoEntity) {
+function getVideoDOMElement(videoEntity) {
     const id = videoEntity.id.substring(13);
-    document.getElementById(`dynamic-video-${id}`).play();
+    return document.getElementById(`dynamic-video-${id}`);
+}
+
+function playVideo(videoEntity) {
+    getVideoDOMElement(videoEntity).play();
 }
 
 function pauseVideo(videoEntity) {
-    const id = videoEntity.id.substring(13);
-    document.getElementById(`dynamic-video-${id}`).pause();
+    getVideoDOMElement(videoEntity).pause();
 }
 
 function muteVideo(videoEntity) {
-    const id = videoEntity.id.substring(13);
-    document.getElementById(`dynamic-video-${id}`).muted = true;
+    getVideoDOMElement(videoEntity).muted = true;
 }
 
 function unmuteVideo(videoEntity) {
-    const id = videoEntity.id.substring(13);
-    document.getElementById(`dynamic-video-${id}`).muted = false;
+    getVideoDOMElement(videoEntity).muted = false;
 }
 
 function createVideoEntity(creative, position, rotation, rowEntity) {
@@ -144,8 +144,8 @@ async function fetchCreatives(type) {
 }
 
 function getItemRotation(hAngle, vAngle) {
-    const x = -vAngle;
-    const y = hAngle;
+    const x = vAngle;
+    const y = hAngle + 180;
     const z = 0;
     return [x, y, z];
 }
@@ -167,18 +167,17 @@ function getItemPosition(radius, hAngle, vAngle) {
 
 // targetPosition: THREE.Vector3
 // observerPosition: THREE.Vector3
-function getCloserPosition(targetPosition, observerPosition, distance)
-{
-    dx = targetPosition.x - observerPosition.x
-    dy = targetPosition.y - observerPosition.y
-    dz = targetPosition.z - observerPosition.z
-    module = Math.sqrt(dx*dx + dy*dy + dz*dz)
+function getCloserPosition(targetPosition, observerPosition, distance) {
+    let dx = targetPosition.x - observerPosition.x
+    let dy = targetPosition.y - observerPosition.y
+    let dz = targetPosition.z - observerPosition.z
+    const module = Math.sqrt(dx*dx + dy*dy + dz*dz)
     dx *= (distance / module)
     dy *= (distance / module)
     dz *= (distance / module)
-    resultX = observerPosition.x + dx
-    resultY = observerPosition.y + dy
-    resultZ = observerPosition.z + dz
+    const resultX = observerPosition.x + dx
+    const resultY = observerPosition.y + dy
+    const resultZ = observerPosition.z + dz
 
     return [resultX, resultY, resultZ]
 }
