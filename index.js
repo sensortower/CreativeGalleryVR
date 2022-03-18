@@ -116,7 +116,7 @@ function onPanelMouseLeave({ srcElement }) {
 
 function onPanelClick({ srcElement }) {
     if (openedEntity && openedEntity === srcElement) {
-        closeEntity(videoEntity);
+        closeEntity(srcElement);
         return;
     }
     openEntity(srcElement);
