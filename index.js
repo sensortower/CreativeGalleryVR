@@ -50,6 +50,16 @@ function rotatePanels() {
     });
 }
 
+function playVideo(videoEntity) {
+    const id = videoEntity.id.substring(13);
+    document.getElementById(`dynamic-video-${id}`).play();
+}
+
+function pauseVideo(videoEntity) {
+    const id = videoEntity.id.substring(13);
+    document.getElementById(`dynamic-video-${id}`).pause();
+}
+
 function createVideoEntity(creative, position, rotation, rowEntity) {
     const videoEntity = document.createElement('a-video');    
     const videoEntityId = `video-entity-${creative.id}`
@@ -59,14 +69,26 @@ function createVideoEntity(creative, position, rotation, rowEntity) {
     videoEntity.setAttribute('width', '4');
     videoEntity.setAttribute('height', '2');
     videoEntity.setAttribute('animation', 'property: components.material.material.opacity; from: 0; to: 1; dur: 750; easing: easeOutQuad');
-    videoEntity.setAttribute('animation__mouseenter', 'property: scale; to: 4 4 4; dur: 350; startEvents: openEntity');
-    videoEntity.setAttribute('animation__mouseleave', 'property: scale; to: 1 1 1; dur: 200; startEvents: closeEntity');
+    videoEntity.setAttribute('animation__open-entity', 'property: scale; to: 4 4 4; dur: 150; startEvents: openEntity');
+    videoEntity.setAttribute('animation__close-entity', 'property: scale; to: 1 1 1; dur: 150; startEvents: closeEntity');
+    videoEntity.setAttribute('animation__mouseenter', 'property: scale; to: 1.25 1.25 1.25; dur: 350; startEvents: highlightEntity');
+    videoEntity.setAttribute('animation__mouseleave', 'property: scale; to: 1 1 1; dur: 350; startEvents: unhighlightEntity');
 
     rowEntity.appendChild(videoEntity);
+
+    videoEntity.addEventListener('mouseenter', evt => {
+        if (!openEntity) {
+            videoEntity.emit('highlightEntity', null, false);
+            playVideo(videoEntity);
+        }
+    });
 
     videoEntity.addEventListener('mouseleave', evt => {
         if (openEntity && openEntity === videoEntity) {
             closeEntity(videoEntity)
+        } else {
+            videoEntity.emit('unhighlightEntity', null, false);
+            pauseVideo(videoEntity);
         }
     });
 
@@ -91,7 +113,7 @@ function createVideoEntity(creative, position, rotation, rowEntity) {
     return { videoEntity, id: videoEntityId };
 }
 
-function closeEntity (entity) {
+function closeEntity(entity) {
     entity.emit('closeEntity', null, false)
     openEntity = null
     rotationPaused = false
@@ -146,7 +168,7 @@ async function start() {
 }
 
 function addPanels(creativesData) {
-    const nItemsBase = 16;
+    const nItemsBase = 20;
     const rows = Array.from(Array(7).keys());
     const circumference = 15;
     let panelIndex = 0;
