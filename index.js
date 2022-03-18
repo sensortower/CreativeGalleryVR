@@ -119,8 +119,7 @@ function onPanelClick({ srcElement }) {
         closeEntity(videoEntity);
         return;
     }
-    // openEntity(srcElement);
-    reset();
+    openEntity(srcElement);
 }
 
 function highlightEntity(videoEntity) {
