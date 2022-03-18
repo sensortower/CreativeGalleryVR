@@ -60,6 +60,16 @@ function pauseVideo(videoEntity) {
     document.getElementById(`dynamic-video-${id}`).pause();
 }
 
+function muteVideo(videoEntity) {
+    const id = videoEntity.id.substring(13);
+    document.getElementById(`dynamic-video-${id}`).muted = true;
+}
+
+function unmuteVideo(videoEntity) {
+    const id = videoEntity.id.substring(13);
+    document.getElementById(`dynamic-video-${id}`).muted = false;
+}
+
 function createVideoEntity(creative, position, rotation, rowEntity) {
     const videoEntity = document.createElement('a-video');    
     const videoEntityId = `video-entity-${creative.id}`
@@ -69,8 +79,6 @@ function createVideoEntity(creative, position, rotation, rowEntity) {
     videoEntity.setAttribute('width', '4');
     videoEntity.setAttribute('height', '2');
     videoEntity.setAttribute('animation', 'property: components.material.material.opacity; from: 0; to: 1; dur: 750; easing: easeOutQuad');
-    videoEntity.setAttribute('animation__open-entity', 'property: scale; to: 4 4 4; dur: 150; startEvents: openEntity');
-    videoEntity.setAttribute('animation__close-entity', 'property: scale; to: 1 1 1; dur: 150; startEvents: closeEntity');
     videoEntity.setAttribute('animation__mouseenter', 'property: scale; to: 1.25 1.25 1.25; dur: 350; startEvents: highlightEntity');
     videoEntity.setAttribute('animation__mouseleave', 'property: scale; to: 1 1 1; dur: 350; startEvents: unhighlightEntity');
 
@@ -101,7 +109,15 @@ function createVideoEntity(creative, position, rotation, rowEntity) {
         rotationPaused = !rotationPaused;
         openEntity = videoEntity;
 
+        const observerPosition = new THREE.Vector3(0, 1, 0);
+        const newPositionVector = getCloserPosition(videoEntity.object3D.position, observerPosition, 3.5);
+        const currentPosition = videoEntity.getAttribute('position');
+        const currentPositionString = `${currentPosition.x} ${currentPosition.y} ${currentPosition.z}`
+        videoEntity.setAttribute('animation__close-entity', `property: position; to: ${currentPositionString}; dur: 150; startEvents: closeEntity`);
+        videoEntity.setAttribute('animation__open-entity', `property: position; to: ${newPositionVector.join(' ')}; dur: 150; startEvents: openEntity`);
+
         videoEntity.emit('openEntity', null, false);
+        unmuteVideo(videoEntity)
 
         const id = videoEntityId.substring(13);
         const creative = creativesData.find(x => x.id === id);
@@ -114,7 +130,9 @@ function createVideoEntity(creative, position, rotation, rowEntity) {
 }
 
 function closeEntity(entity) {
-    entity.emit('closeEntity', null, false)
+    entity.emit('closeEntity', null, false);
+    entity.emit('unhighlightEntity', null, false);
+    muteVideo(entity);
     openEntity = null
     rotationPaused = false
     document.getElementById('title').textContent = ''
@@ -143,6 +161,24 @@ function getItemPosition(radius, hAngle, vAngle) {
     const resultX = x * radius * hProjection / module
     const resultY = y * radius
     const resultZ = z * radius * hProjection / module
+
+    return [resultX, resultY, resultZ]
+}
+
+// targetPosition: THREE.Vector3
+// observerPosition: THREE.Vector3
+function getCloserPosition(targetPosition, observerPosition, distance)
+{
+    dx = targetPosition.x - observerPosition.x
+    dy = targetPosition.y - observerPosition.y
+    dz = targetPosition.z - observerPosition.z
+    module = Math.sqrt(dx*dx + dy*dy + dz*dz)
+    dx *= (distance / module)
+    dy *= (distance / module)
+    dz *= (distance / module)
+    resultX = observerPosition.x + dx
+    resultY = observerPosition.y + dy
+    resultZ = observerPosition.z + dz
 
     return [resultX, resultY, resultZ]
 }
